@@ -1,182 +1,529 @@
 ﻿<Window x:Class="WpMyApp.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WPF Data Management App" Height="700" Width="1200">
+        xmlns:converters="clr-namespace:WpMyApp.Converters"
+        Title="Управление IT-Проектами - Дашборд" Height="900" Width="1400"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <!-- Конвертер для видимости -->
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
-        <!-- Стили для статусов -->
-        <Style x:Key="StatusIndicator" TargetType="Border">
+        <!-- Добавляем конвертер DeadlineColorConverter -->
+        <converters:DeadlineColorConverter x:Key="DeadlineColorConverter"/>
+
+        <!-- Стили для карточек -->
+        <Style x:Key="DashboardCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="StatCard" TargetType="Border">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+
+        <!-- Стили для прогресс-баров -->
+        <Style x:Key="ProgressBarStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Конвертер для цвета статуса (упрощенный) -->
+        <Style x:Key="StatusColorStyle" TargetType="TextBlock">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Status.CurrentStatus}" Value="Loading">
-                    <Setter Property="Background" Value="LightBlue"/>
+                <DataTrigger Binding="{Binding StatusDisplay}" Value="Завершен">
+                    <Setter Property="Foreground" Value="Green"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status.CurrentStatus}" Value="Saving">
-                    <Setter Property="Background" Value="LightGreen"/>
+                <DataTrigger Binding="{Binding StatusDisplay}" Value="Просрочен">
+                    <Setter Property="Foreground" Value="Red"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status.CurrentStatus}" Value="Deleting">
-                    <Setter Property="Background" Value="LightCoral"/>
+                <DataTrigger Binding="{Binding StatusDisplay}" Value="Срочный">
+                    <Setter Property="Foreground" Value="Orange"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status.CurrentStatus}" Value="Error">
-                    <Setter Property="Background" Value="LightPink"/>
+                <DataTrigger Binding="{Binding StatusDisplay}" Value="В работе">
+                    <Setter Property="Foreground" Value="Blue"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Status.CurrentStatus}" Value="Success">
-                    <Setter Property="Background" Value="LightGreen"/>
+                <DataTrigger Binding="{Binding StatusDisplay}" Value="Планирование">
+                    <Setter Property="Foreground" Value="Gray"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </DataTrigger>
             </Style.Triggers>
-            <Setter Property="Background" Value="LightGray"/>
-            <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="Padding" Value="5,2"/>
         </Style>
     </Window.Resources>
 
-    <Grid Margin="10">
+    <Grid Margin="10" Background="#F5F5F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header with Status -->
-        <GroupBox Grid.Row="0" Header="Application Status" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <Border Style="{StaticResource StatusIndicator}" Margin="0,0,10,0">
-                    <TextBlock Text="{Binding Status.CurrentStatus}" FontWeight="Bold" Margin="5,0"/>
-                </Border>
-                <TextBlock Text="{Binding Status.Message}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <ProgressBar Width="100" Height="10" Margin="10,0,0,0" 
-                           IsIndeterminate="{Binding Status.IsBusy}" 
-                           Visibility="{Binding Status.IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            </StackPanel>
-        </GroupBox>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🚀 " FontSize="24" VerticalAlignment="Center"/>
+                    <TextBlock Text="Управление IT-Проектами" FontSize="20" FontWeight="Bold" 
+                              Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text=" | Дашборд" FontSize="16" Foreground="#BDC3C7" 
+                              VerticalAlignment="Center" Margin="10,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="🔄 Обновить" Command="{Binding RefreshDashboardCommand}" 
+                           Background="#3498DB" Foreground="White" BorderThickness="0" 
+                           Padding="10,5" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding CurrentMonth}" Foreground="White" 
+                              FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Main Content -->
-        <TabControl Grid.Row="1">
-            <!-- Users Tab -->
-            <TabItem Header="Users Management">
+        <TabControl Grid.Row="1" BorderThickness="0" Background="Transparent">
+
+            <!-- Dashboard Tab -->
+            <TabItem Header="📊 Дашборд">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Статистика -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <Border Style="{StaticResource StatCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Проекты" FontSize="12" Foreground="#7F8C8D"/>
+                                    <TextBlock Text="{Binding TotalProjects}" FontSize="24" FontWeight="Bold" Foreground="#2C3E50"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Задачи" FontSize="12" Foreground="#7F8C8D"/>
+                                    <TextBlock Text="{Binding TotalTasksCount}" FontSize="24" FontWeight="Bold" Foreground="#2C3E50"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Выполнено" FontSize="12" Foreground="#7F8C8D"/>
+                                    <TextBlock Text="{Binding CompletedTasksCount}" FontSize="24" FontWeight="Bold" Foreground="#27AE60"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Просрочено" FontSize="12" Foreground="#7F8C8D"/>
+                                    <TextBlock Text="{Binding OverdueTasksCount}" FontSize="24" FontWeight="Bold" Foreground="#E74C3C"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StatCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Срочные" FontSize="12" Foreground="#7F8C8D"/>
+                                    <TextBlock Text="{Binding UrgentProjectsCount}" FontSize="24" FontWeight="Bold" Foreground="#E67E22"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Основной контент дашборда -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="300"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Левая колонка -->
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+
+                                <!-- Последние проекты -->
+                                <Border Style="{StaticResource DashboardCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="📂 Последние проекты" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                                        <ItemsControl ItemsSource="{Binding RecentProjects}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="0,8">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#7F8C8D" 
+                                                                       TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"/>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                                <TextBlock Text="{Binding StatusDisplay}" FontSize="11" 
+                                                                           Padding="5,2" Foreground="White" FontWeight="Bold"
+                                                                           Style="{StaticResource StatusColorStyle}"/>
+                                                                <TextBlock Text="{Binding ProgressDisplay}" FontSize="11" 
+                                                                           Margin="10,0,0,0" Foreground="#3498DB" FontWeight="Bold"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Общий прогресс -->
+                                <Border Style="{StaticResource DashboardCard}" Margin="0,10,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="📈 Общий прогресс" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <ProgressBar Grid.Row="0" Value="{Binding OverallProgress}" Maximum="100" 
+                                                        Style="{StaticResource ProgressBarStyle}" Background="#ECF0F1"/>
+                                            <TextBlock Grid.Row="1" Text="{Binding OverallProgress, StringFormat={}{0:F1}%}" 
+                                                      HorizontalAlignment="Center" FontWeight="Bold" Margin="0,5,0,0" Foreground="#2C3E50"/>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                                            <Rectangle Width="12" Height="12" Fill="#3498DB" Margin="0,0,5,0"/>
+                                            <TextBlock Text="Выполнено" FontSize="11" Foreground="#7F8C8D" Margin="0,0,15,0"/>
+                                            <Rectangle Width="12" Height="12" Fill="#ECF0F1" Margin="0,0,5,0"/>
+                                            <TextBlock Text="Осталось" FontSize="11" Foreground="#7F8C8D"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Правая колонка -->
+                            <StackPanel Grid.Column="1">
+
+                                <!-- Календарь -->
+                                <Border Style="{StaticResource DashboardCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="📅 Календарь" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                        <TextBlock Text="{Binding CurrentMonth}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                                        <!-- Простой календарь -->
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Дни недели -->
+                                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                                <TextBlock Text="Пн" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Вт" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Ср" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Чт" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Пт" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Сб" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                                <TextBlock Text="Вс" Width="30" TextAlignment="Center" FontSize="10" FontWeight="Bold"/>
+                                            </StackPanel>
+
+                                            <!-- Упрощенный календарь - просто сетка -->
+                                            <Grid Grid.Row="1">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Просто отображаем числа 1-31 -->
+                                                <TextBlock Text="1" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="2" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="3" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="4" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="5" Grid.Row="0" Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="6" Grid.Row="0" Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="7" Grid.Row="0" Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+
+                                                <TextBlock Text="8" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="9" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="10" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="11" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="12" Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="13" Grid.Row="1" Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="14" Grid.Row="1" Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+
+                                                <TextBlock Text="15" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="16" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="17" Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="18" Grid.Row="2" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="19" Grid.Row="2" Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="20" Grid.Row="2" Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="21" Grid.Row="2" Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+
+                                                <TextBlock Text="22" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="23" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="24" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="25" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="26" Grid.Row="3" Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="27" Grid.Row="3" Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="28" Grid.Row="3" Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+
+                                                <TextBlock Text="29" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Text="30" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                            </Grid>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Ближайшие дедлайны -->
+                                <Border Style="{StaticResource DashboardCard}" Margin="0,10,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="⏰ Ближайшие дедлайны" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                                        <ItemsControl ItemsSource="{Binding UpcomingDeadlines}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="0,5">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12"/>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DueDateDisplay}" FontSize="10" Foreground="#7F8C8D"/>
+                                                                <TextBlock Text=" • " FontSize="10" Foreground="#7F8C8D"/>
+                                                                <TextBlock Text="{Binding DaysLeftDisplay}" FontSize="10" 
+                                                                          Foreground="{Binding DaysUntilDue, Converter={StaticResource DeadlineColorConverter}}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <TextBlock Text="🚨 Просроченные задачи" FontSize="14" FontWeight="Bold" Margin="0,15,0,10" Foreground="#E74C3C"/>
+
+                                        <ItemsControl ItemsSource="{Binding OverdueTasks}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="0,5">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12" Foreground="#E74C3C"/>
+                                                            <TextBlock Text="{Binding DueDateDisplay}" FontSize="10" Foreground="#E74C3C"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Projects Tab -->
+            <TabItem Header="📂 Проекты">
+                <!-- Код управления проектами из предыдущей версии -->
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- User Form -->
-                    <GroupBox Grid.Row="0" Header="User Form" Margin="0,0,0,10" IsEnabled="{Binding IsUserFormEnabled}">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Width="120" Margin="0,0,10,0">
-                                <TextBlock Text="First Name *" Margin="0,0,0,5"/>
-                                <TextBox Text="{Binding SelectedUser.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
+                    <!-- Project Form -->
+                    <GroupBox Grid.Row="0" Header="Форма проекта" Margin="10" IsEnabled="{Binding IsFormEnabled}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Width="200" Margin="0,0,10,0">
+                                    <TextBlock Text="Название проекта *" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedProject.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="150" Margin="0,0,10,0">
+                                    <TextBlock Text="Клиент" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedProject.Client, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="150" Margin="0,0,10,0">
+                                    <TextBlock Text="Менеджер" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedProject.ProjectManager, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="120" Margin="0,0,10,0">
+                                    <TextBlock Text="Бюджет" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedProject.Budget, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <Button Content="Новый" Command="{Binding NewProjectCommand}" Width="60" Margin="0,0,5,0"/>
+                                    <Button Content="Сохранить" Command="{Binding SaveProjectCommand}" Width="80" Margin="0,0,5,0" Background="LightGreen"/>
+                                    <Button Content="Удалить" Command="{Binding DeleteProjectCommand}" Width="80" Background="LightCoral"/>
+                                </StackPanel>
                             </StackPanel>
 
-                            <StackPanel Width="120" Margin="0,0,10,0">
-                                <TextBlock Text="Last Name *" Margin="0,0,0,5"/>
-                                <TextBox Text="{Binding SelectedUser.LastName, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
+                            <!-- Project Details -->
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <StackPanel Width="300" Margin="0,0,10,0">
+                                    <TextBlock Text="Описание проекта" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedProject.Description, UpdateSourceTrigger=PropertyChanged}" 
+                                             Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                </StackPanel>
 
-                            <StackPanel Width="150" Margin="0,0,10,0">
-                                <TextBlock Text="Email" Margin="0,0,0,5"/>
-                                <TextBox Text="{Binding SelectedUser.Email, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
+                                <StackPanel Width="120" Margin="0,0,10,0">
+                                    <TextBlock Text="Дата начала" Margin="0,0,0,5"/>
+                                    <DatePicker SelectedDate="{Binding SelectedProject.StartDate}"/>
+                                </StackPanel>
 
-                            <StackPanel VerticalAlignment="Bottom">
-                                <Button Content="New" Command="{Binding NewUserCommand}" Width="60" Margin="0,0,5,0"/>
-                                <Button Content="Save" Command="{Binding SaveUserCommand}" Width="60" Margin="0,0,5,0" Background="LightGreen"/>
-                                <Button Content="Delete" Command="{Binding DeleteUserCommand}" Width="60" Background="LightCoral"/>
+                                <StackPanel Width="120" Margin="0,0,10,0">
+                                    <TextBlock Text="Дата окончания" Margin="0,0,0,5"/>
+                                    <DatePicker SelectedDate="{Binding SelectedProject.EndDate}"/>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </GroupBox>
 
-                    <!-- Users List with Search -->
-                    <GroupBox Grid.Row="1" Header="Users List">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Search Panel -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
-                                         Width="200" Margin="0,0,10,0"/>
-                                <Button Content="Search" Command="{Binding SearchUsersCommand}" Width="60" Margin="0,0,5,0"/>
-                                <Button Content="Clear" Command="{Binding ClearSearchCommand}" Width="60" Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding TotalUsers, StringFormat='Total Users: {0}'}" 
-                                           VerticalAlignment="Center" FontWeight="Bold"/>
-                            </StackPanel>
-
-                            <!-- Users Grid -->
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding Users}" 
-                                      SelectedItem="{Binding SelectedUser}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="100"/>
-                                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="100"/>
-                                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150"/>
-                                    <DataGridTextColumn Header="Age" Binding="{Binding Age}" Width="60"/>
-                                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="60"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
+                    <!-- Projects List -->
+                    <GroupBox Grid.Row="1" Header="Список проектов" Margin="10">
+                        <DataGrid ItemsSource="{Binding Projects}" 
+                                  SelectedItem="{Binding SelectedProject}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="200"/>
+                                <DataGridTextColumn Header="Клиент" Binding="{Binding Client}" Width="120"/>
+                                <DataGridTextColumn Header="Менеджер" Binding="{Binding ProjectManager}" Width="120"/>
+                                <DataGridTextColumn Header="Статус" Binding="{Binding StatusDisplay}" Width="100" ElementStyle="{StaticResource StatusColorStyle}"/>
+                                <DataGridTextColumn Header="Прогресс" Binding="{Binding ProgressDisplay}" Width="80"/>
+                                <DataGridTextColumn Header="Задачи" Binding="{Binding TotalTasks}" Width="60"/>
+                                <DataGridTextColumn Header="Завершено" Binding="{Binding CompletedTasks}" Width="80"/>
+                                <DataGridTextColumn Header="Бюджет" Binding="{Binding BudgetDisplay}" Width="120"/>
+                                <DataGridTextColumn Header="Начало" Binding="{Binding StartDate, StringFormat=dd.MM.yyyy}" Width="80"/>
+                                <DataGridTextColumn Header="Окончание" Binding="{Binding EndDate, StringFormat=dd.MM.yyyy}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </GroupBox>
                 </Grid>
             </TabItem>
 
-            <!-- Products Tab -->
-            <TabItem Header="Products Management">
+            <!-- Tasks Tab -->
+            <TabItem Header="✅ Задачи">
+                <!-- Код управления задачами из предыдущей версии -->
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Products List -->
-                    <GroupBox Grid.Row="1" Header="Products List">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
+                    <!-- Task Form -->
+                    <GroupBox Grid.Row="0" Header="Форма задачи" Margin="10" IsEnabled="{Binding IsFormEnabled}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Width="250" Margin="0,0,10,0">
+                                    <TextBlock Text="Название задачи *" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedTask.Title, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
 
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                <Button Content="Load Products" Command="{Binding LoadProductsCommand}" Width="100"/>
-                                <TextBlock Text="{Binding TotalProducts, StringFormat='Total Products: {0}'}" 
-                                           VerticalAlignment="Center" FontWeight="Bold" Margin="10,0,0,0"/>
+                                <StackPanel Width="150" Margin="0,0,10,0">
+                                    <TextBlock Text="Проект" Margin="0,0,0,5"/>
+                                    <ComboBox ItemsSource="{Binding Projects}" 
+                                              DisplayMemberPath="Name"
+                                              SelectedValue="{Binding SelectedTask.ProjectId}"
+                                              SelectedValuePath="Id"/>
+                                </StackPanel>
+
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <Button Content="Новая" Command="{Binding NewTaskCommand}" Width="60" Margin="0,0,5,0"/>
+                                    <Button Content="Сохранить" Command="{Binding SaveTaskCommand}" Width="80" Margin="0,0,5,0" Background="LightGreen"/>
+                                    <Button Content="Удалить" Command="{Binding DeleteTaskCommand}" Width="80" Background="LightCoral"/>
+                                    <Button Content="Завершить" Command="{Binding MarkTaskAsCompletedCommand}" Width="80" Margin="5,0,0,0" Background="LightBlue"/>
+                                </StackPanel>
                             </StackPanel>
 
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding Products}" 
-                                      SelectedItem="{Binding SelectedProduct}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
-                                    <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80"/>
-                                    <DataGridTextColumn Header="Stock" Binding="{Binding StockQuantity}" Width="60"/>
-                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
+                            <!-- Task Details -->
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <StackPanel Width="300" Margin="0,0,10,0">
+                                    <TextBlock Text="Описание задачи" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedTask.Description, UpdateSourceTrigger=PropertyChanged}" 
+                                             Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                </StackPanel>
+
+                                <StackPanel Width="120" Margin="0,0,10,0">
+                                    <TextBlock Text="Исполнитель" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedTask.AssignedTo, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="120" Margin="0,0,10,0">
+                                    <TextBlock Text="Срок выполнения" Margin="0,0,0,5"/>
+                                    <DatePicker SelectedDate="{Binding SelectedTask.DueDate}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="80" Margin="0,0,10,0">
+                                    <TextBlock Text="Часы (план)" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedTask.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Width="80" Margin="0,0,10,0">
+                                    <TextBlock Text="Часы (факт)" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedTask.ActualHours, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Tasks List -->
+                    <GroupBox Grid.Row="1" Header="Список задач" Margin="10">
+                        <DataGrid ItemsSource="{Binding AllTasks}" 
+                                  SelectedItem="{Binding SelectedTask}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Задача" Binding="{Binding Title}" Width="200"/>
+                                <DataGridTextColumn Header="Проект" Binding="{Binding ProjectId}" Width="120"/>
+                                <DataGridTextColumn Header="Статус" Binding="{Binding StatusDisplay}" Width="100"/>
+                                <DataGridTextColumn Header="Приоритет" Binding="{Binding PriorityDisplay}" Width="100"/>
+                                <DataGridTextColumn Header="Исполнитель" Binding="{Binding AssignedTo}" Width="120"/>
+                                <DataGridTextColumn Header="Срок" Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" Width="80"/>
+                                <DataGridTextColumn Header="Часы (план)" Binding="{Binding EstimatedHours, StringFormat={}{0} ч}" Width="80"/>
+                                <DataGridTextColumn Header="Часы (факт)" Binding="{Binding ActualHours, StringFormat={}{0} ч}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Просрочена" Binding="{Binding IsOverdue}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </GroupBox>
                 </Grid>
             </TabItem>
         </TabControl>
 
-        <!-- Footer - альтернативная версия -->
-        <Grid Grid.Row="2" Margin="0,10,0,0" Background="LightGray" Height="25">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0" Text="{Binding Status.Message}" 
-                      VerticalAlignment="Center" Margin="5,0"/>
-            <TextBlock Grid.Column="1" Text="{Binding TotalUsers, StringFormat='Users: {0}'}" 
-                      VerticalAlignment="Center" Margin="10,0"/>
-            <TextBlock Grid.Column="2" Text="{Binding TotalProducts, StringFormat='Products: {0}'}" 
-                      VerticalAlignment="Center" Margin="10,0,5,0"/>
-        </Grid>
+        <!-- Footer -->
+        <StatusBar Grid.Row="2" Margin="0,10,0,0" Background="#34495E" Foreground="White">
+            <StatusBarItem>
+                <TextBlock Text="{Binding Status.Message}"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding TotalProjects, StringFormat='Проектов: {0}'}" Margin="10,0,0,0"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding TotalTasksCount, StringFormat='Задач: {0}'}" Margin="10,0,0,0"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding OverdueTasksCount, StringFormat='Просрочено: {0}'}" Margin="10,0,0,0" Foreground="#E74C3C"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

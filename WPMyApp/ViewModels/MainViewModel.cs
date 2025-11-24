@@ -1,198 +1,302 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using WpMyApp.Models;
-using WpMyApp.Services;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using WpMyApp.Models;
+using WpMyApp.Services;
+using WpMyApp.Models;
+using WpMyApp.Services;
 
 namespace WpMyApp.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        private readonly DataService _dataService;
+        private readonly ProjectService _projectService;
 
         [ObservableProperty]
-        private ObservableCollection<User> users = new();
+        private ObservableCollection<Project> _projects = new();
 
         [ObservableProperty]
-        private ObservableCollection<Product> products = new();
+        private ObservableCollection<ProjectTask> allTasks = new();
 
         [ObservableProperty]
-        private User selectedUser = new();
+        private ObservableCollection<Project> recentProjects = new();
 
         [ObservableProperty]
-        private Product selectedProduct = new();
+        private ObservableCollection<ProjectTask> upcomingDeadlines = new();
+
+        [ObservableProperty]
+        private ObservableCollection<ProjectTask> overdueTasks = new();
+
+        [ObservableProperty]
+        private Project selectedProject = new();
+
+        [ObservableProperty]
+        private ProjectTask selectedTask = new();
 
         [ObservableProperty]
         private string searchTerm = "";
 
         [ObservableProperty]
-        private OperationStatus status = new();
+        private Models.OperationStatus _status = new();
 
         [ObservableProperty]
-        private bool isUserFormEnabled = true;
+        private bool isFormEnabled = true;
 
         [ObservableProperty]
-        private int totalUsers = 0;
+        private int totalProjects = 0;
 
         [ObservableProperty]
-        private int totalProducts = 0;
+        private int totalTasksCount = 0;
+
+        [ObservableProperty]
+        private int overdueTasksCount = 0;
+
+        [ObservableProperty]
+        private int completedTasksCount = 0;
+
+        [ObservableProperty]
+        private double overallProgress = 0;
+
+        [ObservableProperty]
+        private decimal totalBudget = 0;
+
+        [ObservableProperty]
+        private decimal spentBudget = 0;
+
+        [ObservableProperty]
+        private int urgentProjectsCount = 0;
+
+        // Статистика для дашборда
+        [ObservableProperty]
+        private string currentMonth = DateTime.Now.ToString("MMMM yyyy");
 
         public MainViewModel()
         {
             string connectionString = "mongodb://localhost:27017";
-            string databaseName = "WpMyAppDatabase";
+            string databaseName = "ProjectManagementDB";
 
-            _dataService = new DataService(connectionString, databaseName);
+            _projectService = new ProjectService(connectionString, databaseName);
 
             // Подписка на изменения статуса
-            _dataService.Status.PropertyChanged += (s, e) =>
+            _projectService.Status.PropertyChanged += (s, e) =>
             {
-                Status.SetStatus(_dataService.Status.CurrentStatus, _dataService.Status.Message);
-                IsUserFormEnabled = !_dataService.Status.IsBusy;
+                Status.SetStatus(_projectService.Status.CurrentStatus, _projectService.Status.Message);
+                IsFormEnabled = !_projectService.Status.IsBusy;
             };
 
             // Автоматическая загрузка данных при старте
             Task.Run(async () =>
             {
-                await LoadUsersAsync();
-                await LoadProductsAsync();
+                await LoadProjectsAsync();
+                UpdateDashboardData();
             });
         }
 
         [RelayCommand]
-        private async Task LoadUsersAsync()
+        private async Task LoadProjectsAsync()
         {
-            var userList = await _dataService.GetUsersAsync();
-            Users = new ObservableCollection<User>(userList);
-            TotalUsers = Users.Count;
+            var projectList = await _projectService.GetProjectsAsync();
+            Projects = new ObservableCollection<Project>(projectList);
+            UpdateDashboardData();
         }
 
         [RelayCommand]
-        private async Task LoadProductsAsync()
+        private async Task LoadAllTasksAsync()
         {
-            var productList = await _dataService.GetProductsAsync();
-            Products = new ObservableCollection<Product>(productList); // ⚠️ Исправлено: Product (не Products)
-            TotalProducts = Products.Count;
-        }
-
-        [RelayCommand]
-        private async Task SaveUserAsync() // ⚠️ Исправлено: SaveUserAsync (не SaveliserAsync)
-        {
-            if (string.IsNullOrWhiteSpace(SelectedUser.FirstName) ||
-                string.IsNullOrWhiteSpace(SelectedUser.LastName))
+            var tasks = new List<ProjectTask>();
+            foreach (var project in Projects)
             {
-                MessageBox.Show("Please fill first and last name", "Validation Error",
+                tasks.AddRange(project.Tasks);
+            }
+            AllTasks = new ObservableCollection<ProjectTask>(tasks);
+            UpdateDashboardData();
+        }
+
+        private void UpdateDashboardData()
+        {
+            TotalProjects = Projects.Count;
+
+            // Обновляем все задачи
+            var allTasksList = new List<ProjectTask>();
+            foreach (var project in Projects)
+            {
+                allTasksList.AddRange(project.Tasks);
+            }
+            AllTasks = new ObservableCollection<ProjectTask>(allTasksList);
+
+            // Статистика
+            TotalTasksCount = AllTasks.Count;
+            CompletedTasksCount = AllTasks.Count(t => t.Status == Models.TaskStatus.Completed);
+            OverdueTasksCount = AllTasks.Count(t => t.IsOverdue);
+            UrgentProjectsCount = Projects.Count(p => p.IsUrgent);
+
+            // Прогресс
+            OverallProgress = TotalTasksCount > 0 ? (CompletedTasksCount / (double)TotalTasksCount) * 100 : 0;
+
+            // Бюджет
+            TotalBudget = Projects.Sum(p => p.Budget);
+            SpentBudget = Projects.Sum(p => p.SpentBudget);
+
+            // Последние проекты (4 самых новых)
+            RecentProjects = new ObservableCollection<Project>(
+                Projects.OrderByDescending(p => p.CreatedAt).Take(4)
+            );
+
+            // Ближайшие дедлайны задач
+            UpcomingDeadlines = new ObservableCollection<ProjectTask>(
+                AllTasks
+                    .Where(t => !t.IsOverdue && t.Status != Models.TaskStatus.Completed)
+                    .OrderBy(t => t.DueDate)
+                    .Take(5)
+            );
+
+            // Просроченные задачи
+            OverdueTasks = new ObservableCollection<ProjectTask>(
+                AllTasks.Where(t => t.IsOverdue).Take(5)
+            );
+        }
+
+        [RelayCommand]
+        private async Task SaveProjectAsync()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedProject.Name))
+            {
+                MessageBox.Show("Введите название проекта", "Ошибка валидации",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var success = await _dataService.SaveUserAsync(SelectedUser);
+            var success = await _projectService.SaveProjectAsync(SelectedProject);
             if (success)
             {
-                await LoadUsersAsync();
-                SelectedUser = new User();
+                await LoadProjectsAsync();
+                SelectedProject = new Project();
             }
         }
 
         [RelayCommand]
-        private async Task DeleteUserAsync()
+        private async Task DeleteProjectAsync()
         {
-            if (SelectedUser == null || string.IsNullOrEmpty(SelectedUser.Id))
+            if (SelectedProject == null || string.IsNullOrEmpty(SelectedProject.Id))
             {
-                MessageBox.Show("Please select a user to delete", "Selection Required",
+                MessageBox.Show("Выберите проект для удаления", "Ошибка",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"Are you sure you want to delete {SelectedUser.FullName}?",
-                                       "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"Удалить проект '{SelectedProject.Name}'? Все задачи также будут удалены.",
+                                       "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
-                var success = await _dataService.DeleteUserAsync(SelectedUser.Id);
+                var success = await _projectService.DeleteProjectAsync(SelectedProject.Id);
                 if (success)
                 {
-                    await LoadUsersAsync();
-                    SelectedUser = new User();
+                    await LoadProjectsAsync();
+                    SelectedProject = new Project();
                 }
             }
         }
 
         [RelayCommand]
-        private async Task SearchUsersAsync()
+        private async Task SaveTaskAsync()
         {
-            if (string.IsNullOrWhiteSpace(SearchTerm)) // ⚠️ Исправлено: IsNullOrWhiteSpace (не IsNullOrWhitespace)
+            if (string.IsNullOrWhiteSpace(SelectedTask.Title) || string.IsNullOrEmpty(SelectedTask.ProjectId))
             {
-                await LoadUsersAsync();
+                MessageBox.Show("Заполните название задачи и выберите проект", "Ошибка валидации",
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var searchResults = await _dataService.SearchUsersAsync(SearchTerm);
-            Users = new ObservableCollection<User>(searchResults);
-            TotalUsers = Users.Count;
+            var success = await _projectService.SaveTaskAsync(SelectedTask);
+            if (success)
+            {
+                await LoadProjectsAsync();
+                SelectedTask = new ProjectTask();
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteTaskAsync()
+        {
+            if (SelectedTask == null || string.IsNullOrEmpty(SelectedTask.Id))
+            {
+                MessageBox.Show("Выберите задачу для удаления", "Ошибка",
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show($"Удалить задачу '{SelectedTask.Title}'?",
+                                       "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                var success = await _projectService.DeleteTaskAsync(SelectedTask.Id);
+                if (success)
+                {
+                    await LoadProjectsAsync();
+                    SelectedTask = new ProjectTask();
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task SearchProjectsAsync()
+        {
+            if (string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                await LoadProjectsAsync();
+                return;
+            }
+
+            var searchResults = await _projectService.SearchProjectsAsync(SearchTerm);
+            Projects = new ObservableCollection<Project>(searchResults);
+            UpdateDashboardData();
         }
 
         [RelayCommand]
         private void ClearSearch()
         {
             SearchTerm = "";
-            LoadUsersCommand.ExecuteAsync(null);
+            LoadProjectsCommand.ExecuteAsync(null);
         }
 
         [RelayCommand]
-        private void NewUser()
+        private void NewProject()
         {
-            SelectedUser = new User();
+            SelectedProject = new Project();
         }
 
         [RelayCommand]
-        private async Task SaveProductAsync()
+        private void NewTask()
         {
-            if (string.IsNullOrWhiteSpace(SelectedProduct.Name))
+            SelectedTask = new ProjectTask();
+            if (SelectedProject != null && !string.IsNullOrEmpty(SelectedProject.Id))
             {
-                MessageBox.Show("Please enter product name", "Validation Error",
-                              MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var success = await _dataService.SaveProductAsync(SelectedProduct); // ⚠️ Исправлено: пробел после await
-            if (success)
-            {
-                await LoadProductsAsync();
-                SelectedProduct = new Product();
+                SelectedTask.ProjectId = SelectedProject.Id;
             }
         }
 
         [RelayCommand]
-        private async Task DeleteProductAsync()
+        private void MarkTaskAsCompleted()
         {
-            if (SelectedProduct == null || string.IsNullOrEmpty(SelectedProduct.Id))
+            if (SelectedTask != null && !string.IsNullOrEmpty(SelectedTask.Id))
             {
-                MessageBox.Show("Please select a product to delete", "Selection Required",
-                              MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var result = MessageBox.Show($"Are you sure you want to delete {SelectedProduct.Name}?",
-                                       "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question); // ⚠️ Добавлена ;
-
-            if (result == MessageBoxResult.Yes)
-            {
-                var success = await _dataService.DeleteProductAsync(SelectedProduct.Id);
-                if (success)
-                {
-                    await LoadProductsAsync();
-                    SelectedProduct = new Product();
-                }
+                SelectedTask.Status = Models.TaskStatus.Completed;
+                SelectedTask.CompletedDate = DateTime.UtcNow;
+                SaveTaskCommand.ExecuteAsync(null);
             }
         }
 
         [RelayCommand]
-        private void NewProduct()
+        private void RefreshDashboard()
         {
-            SelectedProduct = new Product();
+            LoadProjectsCommand.ExecuteAsync(null);
         }
     }
 }
