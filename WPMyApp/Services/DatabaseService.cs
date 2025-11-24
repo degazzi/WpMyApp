@@ -1,6 +1,7 @@
 ﻿// Services/DatabaseService.cs
 using MongoDB.Driver;
 using WpMyApp.Data;
+using WpMyApp.Models;
 
 namespace WpMyApp.Services
 {
@@ -17,7 +18,12 @@ namespace WpMyApp.Services
         public IMongoRepository<T> GetRepository<T>(string collectionName) where T : class
         {
             var collection = _database.GetCollection<T>(collectionName);
-            return new MongoRepository<T>(collection); // ⚠️ Передаем коллекцию, а не service
+            return new MongoRepository<T>(collection);
+        }
+
+        public IMongoCollection<T> GetCollection<T>(string collectionName)
+        {
+            return _database.GetCollection<T>(collectionName);
         }
     }
 }
