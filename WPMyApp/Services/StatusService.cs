@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using WpMyApp.Models;
-using WpMyApp.Models;
 
 namespace WpMyApp.Services
 {
@@ -20,12 +19,10 @@ namespace WpMyApp.Services
 
         public void SetStatus(StatusType type, string message)
         {
-            CurrentStatus = new OperationStatus
-            {
-                StatusType = type,
-                Message = message
-            };
+            CurrentStatus = new OperationStatus();
+            CurrentStatus.SetStatus(type, message);
         }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 

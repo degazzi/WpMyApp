@@ -22,7 +22,7 @@ namespace WpMyApp
 
             // передаём в репозитории и сервисы
             var executerRepo = new ExecuterRepository(context);
-            var projectRepo = new ProjectRepository(context.GetCollection<Project>("Projects")); // если ProjectRepository принимает IMongoCollection
+            var projectRepo = new ProjectRepository(context); // если ProjectRepository принимает IMongoCollection
                                                                                                  // или, если ProjectRepository есть конструктор (IMongoDbContext) — используем аналогично ExecuterRepository
 
             var executerService = new ExecuterService(executerRepo);
@@ -31,7 +31,7 @@ namespace WpMyApp
             var projectTaskRepo = new ProjectTaskRepository(context); // пример, если такой конструктор есть
             var projectService = new ProjectService(projectRepo, projectTaskRepo, executerService, statusService);
 
-            var mainVm = new MainViewModel(projectService /* и другие зависимости */);
+            var mainVm = new MainViewModel(/*projectService*//* и другие зависимости */);
             var mainWindow = new MainWindow { DataContext = mainVm };
             mainWindow.Show();
         }

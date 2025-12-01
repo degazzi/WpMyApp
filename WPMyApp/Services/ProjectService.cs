@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WpMyApp.Data;
-using WpMyApp.Data;
 using WpMyApp.Models;
-using WpMyApp.Models;
-using WpMyApp.Services;
 using WpMyApp.Services;
 
 namespace WpMyApp.Services
@@ -30,9 +27,7 @@ namespace WpMyApp.Services
             _status = status;
         }
 
-
-
-        public OperationStatus Status => _status;
+        public OperationStatus Status => _status.CurrentStatus;
 
         // Project operations
         public async Task<List<Project>> GetProjectsAsync()

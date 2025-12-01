@@ -1,14 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using WpMyApp.Data;
 using WpMyApp.Models;
 using WpMyApp.Services;
-using WpMyApp.Models;
 
 namespace WpMyApp.ViewModels
 {
@@ -88,6 +85,8 @@ namespace WpMyApp.ViewModels
         [ObservableProperty]
         private DateTime today = DateTime.Today;
 
+        public IAsyncRelayCommand AddExecuterCommand { get; }
+
         public ObservableCollection<Executer> Executers { get; set; } = new();
         public ObservableCollection<Executer> SelectedExecuters { get; set; } = new();
 
@@ -98,7 +97,6 @@ namespace WpMyApp.ViewModels
             set => SetProperty(ref _newExecuter, value);
         }
 
-
         private async Task LoadExecutersAsync()
         {
             var list = await _projectService.ExecuterService.GetAllAsync();
@@ -107,7 +105,6 @@ namespace WpMyApp.ViewModels
                 Executers.Add(e);
         }
 
-
         private async Task AddExecuterAsync()
         {
             if (string.IsNullOrWhiteSpace(NewExecuter.Name)) return;
@@ -115,19 +112,31 @@ namespace WpMyApp.ViewModels
             await _projectService.ExecuterService.CreateAsync(NewExecuter);
 
             Executers.Add(NewExecuter);
-
             NewExecuter = new Executer();
         }
-
 
         public MainViewModel()
         {
             string connectionString = "mongodb://localhost:27017";
             string databaseName = "ProjectManagementDB";
 
-            _projectService = new ProjectService(connectionString, databaseName);
+            var context = new MongoDbContext(connectionString, databaseName);
 
-            AddExecuterCommand = new RelayCommand(async _ => await AddExecuterAsync());
+            var projectRepo = new ProjectRepository(context);
+            var taskRepo = new ProjectTaskRepository(context);
+            var executerRepo = new ExecuterRepository(context);
+
+            var executerService = new ExecuterService(executerRepo);
+            var statusService = new StatusService();
+
+            _projectService = new ProjectService(
+                projectRepo,
+                taskRepo,
+                executerService,
+                statusService);
+
+
+            AddExecuterCommand = new AsyncRelayCommand(AddExecuterAsync);
 
             // Подписка на изменения статуса
             _projectService.Status.PropertyChanged += (s, e) =>
