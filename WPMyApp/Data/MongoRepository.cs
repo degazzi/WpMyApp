@@ -1,15 +1,13 @@
-﻿// Data/MongoRepository.cs
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace WpMyApp.Data
 {
     public class MongoRepository<T> : IMongoRepository<T> where T : class
     {
-        private readonly IMongoCollection<T> _collection; // ⚠️ Исправлено: IMongoCollection (без s)
+        private readonly IMongoCollection<T> _collection; 
 
-        public MongoRepository(IMongoCollection<T> collection) // ⚠️ Изменен конструктор
+        public MongoRepository(IMongoCollection<T> collection)
         {
             _collection = collection;
         }
@@ -21,7 +19,7 @@ namespace WpMyApp.Data
 
         public async Task<T> GetByIdAsync(string id)
         {
-            var filter = Builders<T>.Filter.Eq("_id", id); // ⚠️ Исправлено: Eq (не Eg)
+            var filter = Builders<T>.Filter.Eq("_id", id); 
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }
 
@@ -32,13 +30,13 @@ namespace WpMyApp.Data
 
         public async Task UpdateAsync(string id, T item)
         {
-            var filter = Builders<T>.Filter.Eq("_id", id); // ⚠️ Исправлено: Eq (не Eg)
+            var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));         
             await _collection.ReplaceOneAsync(filter, item);
         }
 
-        public async Task DeleteAsync(string id) // ⚠️ Добавьте этот метод
+        public async Task DeleteAsync(string id)
         {
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
             await _collection.DeleteOneAsync(filter);
         }
     }

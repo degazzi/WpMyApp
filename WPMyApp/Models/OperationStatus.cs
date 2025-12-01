@@ -1,5 +1,4 @@
-﻿// Models/OperationStatus.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WpMyApp.Models
 {

@@ -1,8 +1,4 @@
-﻿// Data/IMongoRepository.cs
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace WpMyApp.Data
+﻿namespace WpMyApp.Data
 {
     public interface IMongoRepository<T> where T : class
     {

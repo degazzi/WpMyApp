@@ -4,26 +4,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WpMyApp.Data;
-using WpMyApp.Models;
-using WpMyApp.Services;
 using WpMyApp.Data;
 using WpMyApp.Models;
+using WpMyApp.Models;
+using WpMyApp.Services;
+using WpMyApp.Services;
 
 namespace WpMyApp.Services
 {
     public class ProjectService
     {
-        private readonly IMongoRepository<Project> _projectRepository;
-        private readonly IMongoRepository<ProjectTask> _taskRepository;
-        private readonly OperationStatus _status;
+        private readonly ProjectRepository _projectRepository;
+        private readonly ProjectTaskRepository _taskRepository;
+        public readonly ExecuterService ExecuterService;
+        private readonly StatusService _status;
 
-        public ProjectService(string connectionString, string databaseName)
+        public ProjectService(ProjectRepository projectRepository,
+                              ProjectTaskRepository taskRepository,
+                              ExecuterService executerService,
+                              StatusService status)
         {
-            var databaseService = new DatabaseService(connectionString, databaseName);
-            _projectRepository = databaseService.GetRepository<Project>("Projects");
-            _taskRepository = databaseService.GetRepository<ProjectTask>("Tasks");
-            _status = new OperationStatus();
+            _projectRepository = projectRepository;
+            _taskRepository = taskRepository;
+            ExecuterService = executerService;
+            _status = status;
         }
+
+
 
         public OperationStatus Status => _status;
 
@@ -139,6 +146,10 @@ namespace WpMyApp.Services
         {
             try
             {
+                _status.SetStatus(StatusType.Saving, "Сохранение задачи...");
+
+                if (string.IsNullOrEmpty(task.ProjectId))
+                    task.ProjectId = task.Id;
                 _status.SetStatus(StatusType.Saving, "Сохранение задачи...");
 
                 if (string.IsNullOrEmpty(task.Id))

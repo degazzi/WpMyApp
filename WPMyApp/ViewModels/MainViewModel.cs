@@ -9,7 +9,6 @@ using System.Windows;
 using WpMyApp.Models;
 using WpMyApp.Services;
 using WpMyApp.Models;
-using WpMyApp.Services;
 
 namespace WpMyApp.ViewModels
 {
@@ -18,7 +17,16 @@ namespace WpMyApp.ViewModels
         private readonly ProjectService _projectService;
 
         [ObservableProperty]
-        private ObservableCollection<Project> _projects = new();
+        private string statusMessage = "Готово";
+
+        [ObservableProperty]
+        private ObservableCollection<ProjectTask> selectedProjectTasks = new();
+
+        [ObservableProperty]
+        private string selectedProjectName = "";
+
+        [ObservableProperty]
+        private ObservableCollection<Project> projects = new();
 
         [ObservableProperty]
         private ObservableCollection<ProjectTask> allTasks = new();
@@ -42,7 +50,7 @@ namespace WpMyApp.ViewModels
         private string searchTerm = "";
 
         [ObservableProperty]
-        private Models.OperationStatus _status = new();
+        private Models.OperationStatus status = new();
 
         [ObservableProperty]
         private bool isFormEnabled = true;
@@ -71,9 +79,46 @@ namespace WpMyApp.ViewModels
         [ObservableProperty]
         private int urgentProjectsCount = 0;
 
-        // Статистика для дашборда
+        [ObservableProperty]
+        private double selectedProjectProgress = 0.0;
+
         [ObservableProperty]
         private string currentMonth = DateTime.Now.ToString("MMMM yyyy");
+
+        [ObservableProperty]
+        private DateTime today = DateTime.Today;
+
+        public ObservableCollection<Executer> Executers { get; set; } = new();
+        public ObservableCollection<Executer> SelectedExecuters { get; set; } = new();
+
+        private Executer _newExecuter = new();
+        public Executer NewExecuter
+        {
+            get => _newExecuter;
+            set => SetProperty(ref _newExecuter, value);
+        }
+
+
+        private async Task LoadExecutersAsync()
+        {
+            var list = await _projectService.ExecuterService.GetAllAsync();
+            Executers.Clear();
+            foreach (var e in list)
+                Executers.Add(e);
+        }
+
+
+        private async Task AddExecuterAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewExecuter.Name)) return;
+
+            await _projectService.ExecuterService.CreateAsync(NewExecuter);
+
+            Executers.Add(NewExecuter);
+
+            NewExecuter = new Executer();
+        }
+
 
         public MainViewModel()
         {
@@ -81,6 +126,8 @@ namespace WpMyApp.ViewModels
             string databaseName = "ProjectManagementDB";
 
             _projectService = new ProjectService(connectionString, databaseName);
+
+            AddExecuterCommand = new RelayCommand(async _ => await AddExecuterAsync());
 
             // Подписка на изменения статуса
             _projectService.Status.PropertyChanged += (s, e) =>
@@ -90,19 +137,31 @@ namespace WpMyApp.ViewModels
             };
 
             // Автоматическая загрузка данных при старте
+            
             Task.Run(async () =>
             {
                 await LoadProjectsAsync();
                 UpdateDashboardData();
             });
+
         }
 
         [RelayCommand]
         private async Task LoadProjectsAsync()
         {
-            var projectList = await _projectService.GetProjectsAsync();
-            Projects = new ObservableCollection<Project>(projectList);
-            UpdateDashboardData();
+            try
+            {
+                var projectList = await _projectService.GetProjectsAsync();
+                Projects = new ObservableCollection<Project>(projectList);
+                UpdateDashboardData();
+                StatusMessage = $"Загружено {Projects.Count} проектов";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка загрузки: {ex.Message}";
+                MessageBox.Show($"Ошибка загрузки проектов: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
@@ -131,7 +190,7 @@ namespace WpMyApp.ViewModels
 
             // Статистика
             TotalTasksCount = AllTasks.Count;
-            CompletedTasksCount = AllTasks.Count(t => t.Status == Models.TaskStatus.Completed);
+            CompletedTasksCount = AllTasks.Count(t => t.Status == WpMyApp.Models.TaskStatus.Completed);
             OverdueTasksCount = AllTasks.Count(t => t.IsOverdue);
             UrgentProjectsCount = Projects.Count(p => p.IsUrgent);
 
@@ -142,6 +201,14 @@ namespace WpMyApp.ViewModels
             TotalBudget = Projects.Sum(p => p.Budget);
             SpentBudget = Projects.Sum(p => p.SpentBudget);
 
+            // Прогресс выбранного проекта
+            if (SelectedProject != null && !string.IsNullOrEmpty(SelectedProject.Id))
+            {
+                var projectTasks = AllTasks.Where(t => t.ProjectId == SelectedProject.Id).ToList();
+                var completedProjectTasks = projectTasks.Count(t => t.Status == WpMyApp.Models.TaskStatus.Completed);
+                SelectedProjectProgress = projectTasks.Count > 0 ? (completedProjectTasks / (double)projectTasks.Count) * 100 : 0;
+            }
+
             // Последние проекты (4 самых новых)
             RecentProjects = new ObservableCollection<Project>(
                 Projects.OrderByDescending(p => p.CreatedAt).Take(4)
@@ -150,7 +217,7 @@ namespace WpMyApp.ViewModels
             // Ближайшие дедлайны задач
             UpcomingDeadlines = new ObservableCollection<ProjectTask>(
                 AllTasks
-                    .Where(t => !t.IsOverdue && t.Status != Models.TaskStatus.Completed)
+                    .Where(t => !t.IsOverdue && t.Status != WpMyApp.Models.TaskStatus.Completed && t.DueDate > DateTime.Today)
                     .OrderBy(t => t.DueDate)
                     .Take(5)
             );
@@ -171,11 +238,21 @@ namespace WpMyApp.ViewModels
                 return;
             }
 
-            var success = await _projectService.SaveProjectAsync(SelectedProject);
-            if (success)
+            try
             {
-                await LoadProjectsAsync();
-                SelectedProject = new Project();
+                var success = await _projectService.SaveProjectAsync(SelectedProject);
+                if (success)
+                {
+                    await LoadProjectsAsync();
+                    SelectedProject = new Project();
+                    StatusMessage = "Проект успешно сохранен";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка сохранения: {ex.Message}";
+                MessageBox.Show($"Ошибка сохранения проекта: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -194,11 +271,54 @@ namespace WpMyApp.ViewModels
 
             if (result == MessageBoxResult.Yes)
             {
-                var success = await _projectService.DeleteProjectAsync(SelectedProject.Id);
-                if (success)
+                try
                 {
-                    await LoadProjectsAsync();
-                    SelectedProject = new Project();
+                    var success = await _projectService.DeleteProjectAsync(SelectedProject.Id);
+                    if (success)
+                    {
+                        await LoadProjectsAsync();
+                        SelectedProject = new Project();
+                        StatusMessage = "Проект успешно удален";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Ошибка удаления: {ex.Message}";
+                    MessageBox.Show($"Ошибка удаления проекта: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteProjectById(string projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return;
+
+            var project = Projects.FirstOrDefault(p => p.Id == projectId);
+            if (project == null)
+                return;
+
+            var result = MessageBox.Show($"Удалить проект '{project.Name}'? Все задачи также будут удалены.",
+                                       "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    var success = await _projectService.DeleteProjectAsync(projectId);
+                    if (success)
+                    {
+                        await LoadProjectsAsync();
+                        StatusMessage = "Проект успешно удален";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Ошибка удаления: {ex.Message}";
+                    MessageBox.Show($"Ошибка удаления проекта: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -206,18 +326,28 @@ namespace WpMyApp.ViewModels
         [RelayCommand]
         private async Task SaveTaskAsync()
         {
-            if (string.IsNullOrWhiteSpace(SelectedTask.Title) || string.IsNullOrEmpty(SelectedTask.ProjectId))
+            if (string.IsNullOrWhiteSpace(SelectedTask.Name) || string.IsNullOrEmpty(SelectedTask.ProjectId))
             {
                 MessageBox.Show("Заполните название задачи и выберите проект", "Ошибка валидации",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var success = await _projectService.SaveTaskAsync(SelectedTask);
-            if (success)
+            try
             {
-                await LoadProjectsAsync();
-                SelectedTask = new ProjectTask();
+                var success = await _projectService.SaveTaskAsync(SelectedTask);
+                if (success)
+                {
+                    await LoadProjectsAsync();
+                    SelectedTask = new ProjectTask();
+                    StatusMessage = "Задача успешно сохранена";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка сохранения: {ex.Message}";
+                MessageBox.Show($"Ошибка сохранения задачи: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -231,16 +361,26 @@ namespace WpMyApp.ViewModels
                 return;
             }
 
-            var result = MessageBox.Show($"Удалить задачу '{SelectedTask.Title}'?",
+            var result = MessageBox.Show($"Удалить задачу '{SelectedTask.Name}'?",
                                        "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
-                var success = await _projectService.DeleteTaskAsync(SelectedTask.Id);
-                if (success)
+                try
                 {
-                    await LoadProjectsAsync();
-                    SelectedTask = new ProjectTask();
+                    var success = await _projectService.DeleteTaskAsync(SelectedTask.Id);
+                    if (success)
+                    {
+                        await LoadProjectsAsync();
+                        SelectedTask = new ProjectTask();
+                        StatusMessage = "Задача успешно удалена";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Ошибка удаления: {ex.Message}";
+                    MessageBox.Show($"Ошибка удаления задачи: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -254,9 +394,17 @@ namespace WpMyApp.ViewModels
                 return;
             }
 
-            var searchResults = await _projectService.SearchProjectsAsync(SearchTerm);
-            Projects = new ObservableCollection<Project>(searchResults);
-            UpdateDashboardData();
+            try
+            {
+                var searchResults = await _projectService.SearchProjectsAsync(SearchTerm);
+                Projects = new ObservableCollection<Project>(searchResults);
+                UpdateDashboardData();
+                StatusMessage = $"Найдено {Projects.Count} проектов";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка поиска: {ex.Message}";
+            }
         }
 
         [RelayCommand]
@@ -270,6 +418,7 @@ namespace WpMyApp.ViewModels
         private void NewProject()
         {
             SelectedProject = new Project();
+            StatusMessage = "Создание нового проекта";
         }
 
         [RelayCommand]
@@ -279,6 +428,108 @@ namespace WpMyApp.ViewModels
             if (SelectedProject != null && !string.IsNullOrEmpty(SelectedProject.Id))
             {
                 SelectedTask.ProjectId = SelectedProject.Id;
+            }
+            StatusMessage = "Создание новой задачи";
+        }
+
+        [RelayCommand]
+        private void NavigateToProgress()
+        {
+            StatusMessage = "Переход к прогрессу проектов";
+        }
+
+        [RelayCommand]
+        private void NavigateToDeadlines()
+        {
+            StatusMessage = "Переход к дедлайнам";
+        }
+
+        [RelayCommand]
+        private void NavigateToHome()
+        {
+            StatusMessage = "Главная страница";
+        }
+
+        [RelayCommand]
+        private void NavigateToProjects()
+        {
+            StatusMessage = "Список проектов";
+        }
+
+        [RelayCommand]
+        private void NavigateToSettings()
+        {
+            StatusMessage = "Настройки приложения";
+        }
+
+        [RelayCommand]
+        private void OpenProject(string projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return;
+
+            var proj = Projects.FirstOrDefault(x => x.Id == projectId);
+            if (proj == null)
+                return;
+
+            SelectedProject = proj;
+            SelectedProjectName = proj.Name;
+            SelectedProjectTasks = new ObservableCollection<ProjectTask>(proj.Tasks);
+            UpdateDashboardData();
+            StatusMessage = $"Открыт проект: {proj.Name}";
+        }
+
+        [RelayCommand]
+        private async Task AddProject()
+        {
+            SelectedProject = new Project();
+            StatusMessage = "Создание нового проекта";
+        }
+
+        [RelayCommand]
+        private async Task RefreshDashboard()
+        {
+            await LoadProjectsAsync();
+            StatusMessage = "Дашборд обновлен";
+        }
+
+        [RelayCommand]
+        private async Task CompleteTask(string taskId)
+        {
+            if (string.IsNullOrEmpty(taskId))
+                return;
+
+            var task = AllTasks.FirstOrDefault(t => t.Id == taskId);
+            if (task == null)
+                return;
+
+            task.Status = WpMyApp.Models.TaskStatus.Completed;
+            task.CompletedDate = DateTime.UtcNow;
+
+            try
+            {
+                await _projectService.SaveTaskAsync(task);
+                await LoadProjectsAsync();
+                StatusMessage = $"Задача '{task.Name}' выполнена";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка выполнения задачи: {ex.Message}";
+                MessageBox.Show($"Ошибка выполнения задачи: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void EditTask(string taskId)
+        {
+            if (string.IsNullOrEmpty(taskId))
+                return;
+
+            SelectedTask = AllTasks.FirstOrDefault(t => t.Id == taskId);
+            if (SelectedTask != null)
+            {
+                StatusMessage = $"Редактирование задачи: {SelectedTask.Name}";
             }
         }
 
@@ -293,10 +544,22 @@ namespace WpMyApp.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void RefreshDashboard()
+        partial void OnSelectedProjectChanged(Project value)
         {
-            LoadProjectsCommand.ExecuteAsync(null);
+            if (value != null && !string.IsNullOrEmpty(value.Id))
+            {
+                SelectedProjectTasks = new ObservableCollection<ProjectTask>(value.Tasks);
+                SelectedProjectName = value.Name;
+                UpdateDashboardData();
+            }
+        }
+
+        partial void OnSearchTermChanged(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                LoadProjectsCommand.ExecuteAsync(null);
+            }
         }
     }
 }

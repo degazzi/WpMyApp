@@ -1,9 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using WpMyApp.Models;
 
 namespace WpMyApp.Models
 {
@@ -27,7 +24,6 @@ namespace WpMyApp.Models
         [BsonIgnore]
         public List<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
 
-        // Вычисляемые свойства для дашборда
         public int TotalTasks => Tasks.Count;
         public int CompletedTasks => Tasks.Count(t => t.Status == TaskStatus.Completed);
         public int PendingTasks => Tasks.Count(t => t.Status != TaskStatus.Completed);
