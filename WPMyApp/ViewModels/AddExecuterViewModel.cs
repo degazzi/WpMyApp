@@ -27,8 +27,5 @@ namespace WpMyApp.ViewModels
 
             Services.NavigationService.Instance.Back();
         }
-
-        [RelayCommand]
-        private void Back() => Services.NavigationService.Instance.Back();
     }
 }

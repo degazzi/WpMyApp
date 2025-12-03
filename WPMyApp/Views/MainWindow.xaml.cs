@@ -7,6 +7,7 @@ namespace WpMyApp.Views
     {
         public MainWindow()
         {
+            DataContext = new MainWindowViewModel();
             InitializeComponent();
         }
     }

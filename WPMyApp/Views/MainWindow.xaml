@@ -37,28 +37,29 @@
         </Style>
 
         <DataTemplate DataType="{x:Type viewmodels:DashboardViewModel}">
-            <views:DashboardView />
+            <views:DashboardView/>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:ProjectsViewModel}">
-            <views:ProjectsView />
-        </DataTemplate>
-
-        <DataTemplate DataType="{x:Type viewmodels:ExecutersViewModel}">
-            <views:ExecutersView />
+            <views:ProjectsView/>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:DeadlinesViewModel}">
-            <views:DeadlinesView />
+            <views:DeadlinesView/>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:SettingsViewModel}">
-            <views:SettingsView />
+        <DataTemplate DataType="{x:Type viewmodels:ExecutersViewModel}">
+            <views:ExecutersView/>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:AddProjectViewModel}">
-            <views:AddProjectView />
+            <views:AddProjectView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:SettingsViewModel}">
+            <views:SettingsView/>
+        </DataTemplate>
+
     </Window.Resources>
 
     <Grid>
@@ -119,8 +120,8 @@
              ОСНОВНОЙ КОНТЕНТ
         ===============================-->
         <ContentControl Grid.Row="1"
-                Background="Red"
-                Content="{Binding CurrentViewModel}"/>
+                Content="{Binding CurrentViewModel}" />
+
 
 
     </Grid>
