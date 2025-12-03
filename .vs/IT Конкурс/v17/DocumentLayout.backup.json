@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WpMyApp\\WPMyApp\\Views\\MainWindow.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\ProjectsView.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WpMyApp\\WPMyApp\\Views\\ProjectsView.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WpMyApp\\WPMyApp\\Views\\MainWindow.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,13 +30,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml",
               "RelativeDocumentMoniker": "WpMyApp\\WPMyApp\\Views\\MainWindow.xaml",
               "ToolTip": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml",
               "RelativeToolTip": "WpMyApp\\WPMyApp\\Views\\MainWindow.xaml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-12-03T07:33:05.803Z",
               "EditorCaption": ""
@@ -49,20 +49,20 @@
               "RelativeDocumentMoniker": "WpMyApp\\WPMyApp\\Views\\ProjectsView.xaml",
               "ToolTip": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\ProjectsView.xaml",
               "RelativeToolTip": "WpMyApp\\WPMyApp\\Views\\ProjectsView.xaml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-12-03T07:33:04.729Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs",
               "ToolTip": "D:\\\u0414\u0438\u0441\u043A \u0426 \u0444\u0430\u0439\u043B\u044B\\\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\\C#\\WPF\\IT \u041A\u043E\u043D\u043A\u0443\u0440\u0441\\WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs",
               "RelativeToolTip": "WpMyApp\\WPMyApp\\Views\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-03T07:33:01.096Z",
               "EditorCaption": ""
