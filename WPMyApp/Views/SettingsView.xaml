@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="WpMyApp.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#000000">
+
+	<StackPanel Margin="40">
+
+		<TextBlock Text="Настройки" Foreground="White" FontSize="48" Margin="0 0 0 40"/>
+
+		<!-- Шрифт -->
+		<StackPanel Orientation="Horizontal" Margin="0 20">
+			<TextBlock Text="Шрифт" Foreground="White" FontSize="24" Width="200"/>
+			<ComboBox Width="300" Height="40" ItemsSource="{Binding Fonts}"
+                      SelectedItem="{Binding SelectedFont}" FontSize="18"/>
+		</StackPanel>
+
+		<!-- Тема -->
+		<StackPanel Orientation="Horizontal" Margin="0 20">
+			<TextBlock Text="Тема" Foreground="White" FontSize="24" Width="200"/>
+			<RadioButton Content="Светлая" GroupName="Theme" Foreground="White" Margin="0 0 20 0"/>
+			<RadioButton Content="Тёмная" GroupName="Theme" Foreground="White" Margin="0 0 20 0"/>
+			<RadioButton Content="Как в системе" GroupName="Theme" Foreground="White"/>
+		</StackPanel>
+
+		<!-- Язык -->
+		<StackPanel Orientation="Horizontal" Margin="0 20">
+			<TextBlock Text="Язык" Foreground="White" FontSize="24" Width="200"/>
+			<ComboBox Width="300" Height="40"
+                      ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage}" FontSize="18"/>
+		</StackPanel>
+
+	</StackPanel>
+
+</UserControl>

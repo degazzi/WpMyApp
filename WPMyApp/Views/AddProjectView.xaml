@@ -1,0 +1,72 @@
+<UserControl x:Class="WpMyApp.Views.AddProjectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#000000">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+
+            <TextBlock Text="Create project" Foreground="White" FontSize="48" HorizontalAlignment="Center" Margin="0 0 0 40"/>
+
+            <StackPanel>
+                <TextBlock Text="Project name" Foreground="White"/>
+                <TextBox Text="{Binding ProjectName}" Height="40" FontSize="20" Margin="0 10"/>
+            </StackPanel>
+
+            <Border BorderBrush="White" BorderThickness="2" CornerRadius="15" Margin="0 20">
+                <StackPanel Margin="20">
+
+                    <TextBlock Text="Executer" Foreground="White" FontSize="28"/>
+
+                    <ComboBox ItemsSource="{Binding AllExecuters}" 
+                              SelectedItem="{Binding SelectedExecuter}" FontSize="20" Height="40"/>
+
+                    <ComboBox ItemsSource="{Binding AllTasks}"
+                              SelectedItem="{Binding SelectedTask}" FontSize="20" Height="40" Margin="0 10"/>
+
+                    <Button Content="Add executer"
+                            Command="{Binding AddExecuterCommand}"
+                            Foreground="White" Background="Black"
+                            BorderBrush="White" BorderThickness="2" Margin="0 20"
+                            FontSize="20" />
+                </StackPanel>
+            </Border>
+
+            <Border BorderBrush="White" BorderThickness="2" CornerRadius="15">
+                <StackPanel Margin="20">
+
+                    <TextBlock Text="Tasks" Foreground="White" FontSize="28"/>
+
+                    <TextBox Text="{Binding NewTaskName}" Height="40" Margin="0 10"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox ItemsSource="{Binding Priorities}"
+                                  SelectedItem="{Binding SelectedPriority}" Width="200" Margin="10 0"/>
+                        <DatePicker SelectedDate="{Binding NewTaskDeadline}" Width="200" Margin="10 0"/>
+                    </StackPanel>
+
+                    <Button Content="Add task"
+                            Command="{Binding AddTaskCommand}"
+                            Foreground="White" Background="Black"
+                            BorderBrush="White" BorderThickness="2" Margin="0 20"
+                            FontSize="20" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 40">
+                <Button Content="Delete data"
+                        Command="{Binding ClearCommand}"
+                        Foreground="White" Background="Black" BorderBrush="White" BorderThickness="2"
+                        FontSize="24" Margin="20"/>
+
+                <Button Content="Add project"
+                        Command="{Binding SaveProjectCommand}"
+                        Foreground="White" Background="Black"
+                        BorderBrush="White" BorderThickness="2"
+                        FontSize="24" Margin="20"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

@@ -1,0 +1,60 @@
+<UserControl x:Class="WpMyApp.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#000000">
+
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="3*"/>
+			<ColumnDefinition Width="2*"/>
+			<ColumnDefinition Width="2*"/>
+		</Grid.ColumnDefinitions>
+
+		<!-- Последние проекты -->
+		<Border BorderBrush="White" BorderThickness="2" Margin="20" CornerRadius="15">
+			<StackPanel Margin="20">
+				<TextBlock Text="Последние проекты"
+                           Foreground="White" FontSize="24" Margin="0 0 0 15"/>
+
+				<ItemsControl ItemsSource="{Binding RecentProjects}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding}" Foreground="White" FontSize="16"/>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</Border>
+
+		<!-- Календарь -->
+		<Border Grid.Column="1" BorderBrush="White" BorderThickness="2" Margin="20" CornerRadius="15">
+			<StackPanel Margin="20">
+				<TextBlock Text="Календарь"
+                           HorizontalAlignment="Center"
+                           Foreground="White" FontSize="24" Margin="0 0 0 15"/>
+				<Calendar Foreground="White" Background="Black"/>
+			</StackPanel>
+		</Border>
+
+		<!-- Прогресс -->
+		<Border Grid.Column="2" BorderBrush="White" BorderThickness="2" Margin="20" CornerRadius="15">
+			<StackPanel Margin="20">
+				<TextBlock Text="Прогресс"
+                           Foreground="White" FontSize="24" Margin="0 0 0 15"/>
+
+				<ItemsControl ItemsSource="{Binding ProgressItems}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Margin="10">
+								<TextBlock Foreground="White" Text="{Binding Title}" FontSize="20"/>
+								<ProgressBar Value="{Binding Percent}" Height="10" Margin="0 10"/>
+								<TextBlock Foreground="White" Text="{Binding PercentText}" />
+							</StackPanel>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</Border>
+
+	</Grid>
+</UserControl>

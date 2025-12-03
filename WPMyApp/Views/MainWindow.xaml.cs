@@ -1,5 +1,5 @@
-﻿using WpMyApp.ViewModels;
-using System.Windows;
+﻿using System.Windows;
+using WpMyApp.ViewModels;
 
 namespace WpMyApp.Views
 {
@@ -8,7 +8,6 @@ namespace WpMyApp.Views
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel();
         }
     }
 }

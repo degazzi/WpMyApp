@@ -1,6 +1,5 @@
 ﻿using MongoDB.Driver;
 using WpMyApp.Models;
-using WpMyApp.Models;
 
 namespace WpMyApp.Data
 {
