@@ -14,6 +14,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
+        
         <!-- Последние проекты -->
         <Border Grid.Row="0" BorderBrush="White" BorderThickness="2" Margin="20" CornerRadius="15">
             <StackPanel Margin="20">
